@@ -6,6 +6,6 @@
     },
     "cmake.sourceDirectory": "/home/jche/project/JCOSEK",
     "cmake.configureArgs": [
-        "-DSYS_TEST=test_06_EcuM"
+        "-DSYS_TEST=test_05_ISR"
     ]
 }

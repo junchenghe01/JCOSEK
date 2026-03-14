@@ -1,25 +1,25 @@
-# Project Roadmap - JCOSEK (Heterogeneous Safety-Critical Arm RTOS)
+# Project Roadmap - JCOSEK (OSEK/VDX OS)
 
 ## 🏗 High-Level Architectural Goals
-本文档概述了 JCOSEK 内核的开发方向。我们遵循 **OSEK/VDX** 和 **AUTOSAR OS** 规范，致力于在 ARM 架构上提供极致的确定性。
+This document outlines the development direction of the JCOSEK OS. Adhering to the **OSEK/VDX** specifications, we are dedicated to developing an open-source operating system that complies with OSEK/VDX standards.
 
 ---
 
 ## 🟢 Current Release: v0.1 (Base Kernel)
 *Focus: Execution Environment & Basic Scheduling*
-StartOS（系统启动）
-Schedule（显式调度请求）
-TerminateTask（任务终止）
-ActivateTask（任务激活）
-### 核心内核 (Core Kernel)
-- [x] **Bitmap Scheduler**: 支持 256 优先级的 O(1) 调度器。
-- [x] **Context Switching**: ARM Cortex-A9 寄存器现场保存与恢复。
-- [x] **FIFO Queuing**: 同优先级任务的链表管理。
-- [x] **Startup Sequence**: 符合 AUTOSAR 流程的 `StartOS` 汇编启动。
+StartOS (System Startup)
+Schedule (Explicit Scheduling Request)
+TerminateTask (Task Termination)
+ActivateTask (Task Activation)
+### Core Kernel
+- [x] **Bitmap Scheduler**: Supports an O(1) scheduler with 256 priority levels.
+- [x] **Context Switching**: ARM Cortex-A9 Register Context Saving and Restoration
+- [x] **FIFO Queuing**: Linked list management for tasks of the same priority.
+- [x] **Startup Sequence**: `StartOS` Assembly Startup (OSEK/VDX-compliant)
 
-### 架构适配 (Arch/Arm)
-- [x] **SVC Mode**: 内核运行在特权模式。
-- [x] **VExpress-A9**: 基础 QEMU 模拟环境搭建。
+### Arch/Arm
+- [x] **SVC Mode**: The kernel runs in privileged mode.
+- [x] **VExpress-A9**: Setting up a Basic QEMU Simulation Environment
 
 ---
 
@@ -61,7 +61,3 @@ asw
 
 ## 🤝 How to Contribute
 我们欢迎针对 Roadmap 中标注为 [ ] 的任务提交 Pull Request。请在开始前查看 `CONTRIBUTING.md`。
-
-
-
-处理到EcuM_SetRelWakeupAlarm
