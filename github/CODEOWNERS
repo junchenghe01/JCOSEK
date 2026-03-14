@@ -1,0 +1,5 @@
+# Specify code owners. Replace with your org/users.
+# Format: <path> <github-username-or-team>
+/src/ @your-org/maintainers
+/docs/ @your-org/documentation
+/.github/ @your-org/infra

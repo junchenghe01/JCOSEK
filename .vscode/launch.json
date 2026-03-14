@@ -1,0 +1,35 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug QEMU (VExpress-A9)",
+            "type": "cppdbg",
+            "request": "launch",
+            /* 1. 修正程序路径：指向你 build 文件夹下的 elf 文件 */
+            "program": "${workspaceFolder}/build/JCOSEK.elf",
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            /* 2. 确保虚拟机中安装了 gdb-multiarch 或 arm-none-eabi-gdb */
+            "miDebuggerPath": "/usr/bin/gdb-multiarch",
+            /* "miDebuggerServerAddress": "localhost:1234", */
+            "miDebuggerServerAddress": "127.0.0.1:1234",
+            // "preLaunchTask": "Run QEMU Server",
+            // "setupCommands": [
+            //     { 
+            //         "description": "设置架构为 ARM", 
+            //         "text": "set architecture arm",
+            //         "ignoreFailures": false},
+            //     { 
+            //         "description": "延长超时以防网络波动", 
+            //         "text": "set remotetimeout 20" 
+            //     },
+            //     /*  { "text": "target remote :1234" } */
+            // ]
+        }
+    ]
+}

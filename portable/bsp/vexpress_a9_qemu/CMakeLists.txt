@@ -1,0 +1,9 @@
+add_library(STARTUP STATIC ${CMAKE_CURRENT_SOURCE_DIR}/startup.S)
+
+# 导出链接脚本地址到顶层
+# set(PLATFORM_LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/linker.ld" PARENT_SCOPE)
+# 不用 PARENT_SCOPE，改用全局属性
+set_property(GLOBAL PROPERTY GLOBAL_LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/linker.ld")
+
+# 导出包含路径
+target_include_directories(STARTUP PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

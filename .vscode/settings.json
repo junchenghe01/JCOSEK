@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "platform_types.h": "c",
+        "reg_esys_gpio.h": "c",
+        "dio_types.h": "c"
+    },
+    "cmake.sourceDirectory": "/home/jche/project/JCOSEK",
+    "cmake.configureArgs": [
+        "-DSYS_TEST=test_06_EcuM"
+    ]
+}
