@@ -21,13 +21,13 @@
         {
             "label": "Build RTOS",
             "type": "shell",
-            "command": "cd ${workspaceFolder}/build && rm -rf * && cmake -DSYS_TEST=test_06_EcuM .. && cmake --build .",
+            "command": "cd ${workspaceFolder}/build && rm -rf * && cmake -DSYS_TEST=test_05_ISR .. && cmake --build .",
             "problemMatcher": []
         },
         {
             "label": "Build doc",
             "type": "shell",
-            "command": "cd ${workspaceFolder}/build && rm -rf * && cmake -DSYS_TEST=test_06_EcuM .. && cmake --build . --target doc",
+            "command": "cd ${workspaceFolder}/build && rm -rf * && cmake -DSYS_TEST=test_05_ISR .. && cmake --build . --target doc",
             "problemMatcher": []
         }
     ]

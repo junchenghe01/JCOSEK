@@ -1,6 +1,6 @@
 # JCOSEK
 
-An OS implemented based on the AUTOSAR Classic Platform R23-11 and OSEK/VDX Operating System Specification requirements.
+An OS implemented based on the OSEK/VDX Operating System Specification requirements.
 
 ## Quick Start
 
@@ -13,7 +13,7 @@ cd JCOSEK
 2. Build (example; replace with your cross-toolchain and build steps):
 ```bash
 mkdir build && cd build
-cmake -DSYS_TEST=test_02_resource ..
+cmake ..
 make -j$(nproc)
 ```
 
@@ -29,12 +29,11 @@ We welcome contributions. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and [CO
 This project uses the Mozilla Public License 2.0 (MPL‑2.0). See `LICENSE` for the full text.
 
 ## Suggested repository layout
-- `src/`       — kernel / drivers / MPL‑protected core code
-- `include/`   — public headers
-- `libs/`      — third-party libraries (check their licenses)
-- `apps/`      — applications / tasks (may remain closed-source if not modifying MPL files)
-- `tests/`     — unit and integration tests
 - `docs/`      — documentation
+- `include/`   — public headers
+- `portable/`  - portable
+- `src/`       — kernel / drivers / MPL‑protected core code
+- `tests/`     — unit and integration tests
 
 ## Distribution & Compliance
 If you distribute binaries/firmware that include modified MPL files from this project, you must provide access to the modified MPL source files (or include them) per MPL‑2.0 requirements. See `LICENSE` and `LICENSE-FAQ.md` for details.

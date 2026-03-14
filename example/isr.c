@@ -2,7 +2,6 @@
 
 void gic_enable_int (uint32 id)
 {
-    // GICD_ISENABLERn: 每 32 个中断占用一个寄存器
     volatile uint32 *isenabler = (uint32 *)(GIC_DIST_BASE + 0x100 + (id / 32) * 4);
     *isenabler                 = (1 << (id % 32));
 }
@@ -26,7 +25,7 @@ void init_private_timer (uint32 load)
 void init_private_wdog (uint32 load)
 {
     *(volatile uint32 *)(MPC_PRIV_BASE + 0x20) = load;
-    *(volatile uint32 *)(MPC_PRIV_BASE + 0x28) = 0x7;  // 定时器模式
+    *(volatile uint32 *)(MPC_PRIV_BASE + 0x28) = 0x7;  // Timer Mode
     gic_enable_int (ID_WATCHDOG);
 }
 
@@ -39,7 +38,7 @@ void init_global_timer (uint32 delta)
 
     gt[2]       = (uint32)next;          // Comp Low
     gt[3]       = (uint32)(next >> 32);  // Comp High
-    gt[0x8 / 4] = 0x0;                   // Auto-increment 设为0，由handler手动更新
+    gt[0x8 / 4] = 0x0;                   // Set AUTO_INCREMENT to 0, and update it manually via the handler.
     gt[2]       = 0xF;                   // Enable, Comp, IRQ, Auto-inc
     gic_enable_int (ID_GLOBAL_TIMER);
 }
@@ -52,18 +51,18 @@ void init_global_timer (uint32 delta)
 // }
 void init_sp804_dual (uint32 load1, uint32 load2)
 {
-    // --- Timer 1 配置 (系统心跳 - Periodic) ---
+    // --- Timer 1 Configuration (System Heartbeat - Periodic) ---
     *(volatile uint32 *)SP804_T1_LOAD = load1;
     // 0xE2: Enable, Periodic, IntEnable, 32-bit
     *(volatile uint32 *)SP804_T1_CONTROL = 0xE2;
 
-    // --- Timer 2 配置 (其他业务 - 例如 One-shot 模式) ---
+    // --- Timer 2 Configuration (Other Applications - e.g., One-shot Mode) ---
     *(volatile uint32 *)SP804_T2_LOAD = load2;
     // 0x62: Enable, One-shot(bit 0=0), IntEnable, 32-bit
-    // 如果也要 Periodic 模式，则保持 0xE2
+    // If Periodic mode is also required, keep it at 0xE2.
     *(volatile uint32 *)SP804_T2_CONTROL = 0xE2;
 
-    // 开启 GIC 中的 ID 34 (两个定时器共享此 ID)
+    // Enable ID 34 in the GIC (two timers share this ID).
     gic_enable_int (ID_SP804);
 }
 /* ================== 5. RTC PL031 (ID 34) ================== */
