@@ -54,13 +54,13 @@ extern OsControlBlock ocb;
  */
 CounterControlBlock* Os_Internal_GetCounterIdByAlarmID (AlarmType AlarmID);
 
-void              Os_Internal_TriggerAlarmAction (AlarmControlBlock* pAlarm);
-uint16            Os_Internal_GetHighestPriorityIndex (void);
-TaskControlBlock* Os_Internal_GetTaskControlBlockByTaskID (TaskType TaskID);
-void              Os_Internal_EnqueueReadyTask (TaskControlBlock* pTcb, PriorityType currentPriority, uint8 flag);
-void              Os_Internal_Task_RemoveFromReady (TaskControlBlock* pTcb);
-void              Os_Internal_Task_Yield (void);
-void              Os_Internal_EnterIdleMode (void);
+void       Os_Internal_TriggerAlarmAction (AlarmControlBlock* pAlarm);
+uint16     Os_Internal_GetHighestPriorityIndex (void);
+StatusType Os_Internal_GetTaskControlBlockByTaskID (TaskType TaskID, TaskControlBlock* pTcb);
+void       Os_Internal_EnqueueReadyTask (TaskControlBlock* pTcb, PriorityType currentPriority, uint8 flag);
+void       Os_Internal_Task_RemoveFromReady (TaskControlBlock* pTcb);
+void       Os_Internal_Task_Yield (void);
+void       Os_Internal_EnterIdleMode (void);
 /** ============================================================================
  * Public API Implementation
  * ========================================================================= */
@@ -111,5 +111,16 @@ static inline void Os_Arch_DisableInterrupts (void)
      */
     __asm__ volatile ("cpsid i" : : : "memory");
 }
+
+/**
+ * @brief Performs a context switch to the next ready task based on the scheduling policy.
+ * @details This function is called by the scheduler after determining the next task to run.
+ *
+ * @param[in] pOcb Pointer to the OS control block containing the current task and system state.
+ * @return StatusType
+ * @retval E_OK if the context switch was successful.
+ * @retval E_OS_SYS_ASSERTION if the context switch failed due to a critical error.
+ */
+StatusType Os_Internal_Schedule (OsControlBlock* pOcb);
 
 #endif /** OS_INTERNAL_H */

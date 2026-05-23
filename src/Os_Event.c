@@ -52,7 +52,12 @@ StatusType SetEvent (TaskType TaskID, EventMaskType Mask)
         return E_OS_ID;
     }
 
-    TaskControlBlock* pTcb = Os_Internal_GetTaskControlBlockByTaskID (TaskID);
+    TaskControlBlock* pTcb   = NULL;
+    StatusType        status = Os_Internal_GetTaskControlBlockByTaskID (TaskID, &pTcb);
+    if (status != E_OK)
+    {
+        return status;
+    }
 
     /**
      * Requirement: Only Extended Tasks support the event mechanism.
@@ -147,7 +152,12 @@ StatusType GetEvent (TaskType TaskID, EventMaskRefType Event)
         return E_OS_ID;
     }
 
-    TaskControlBlock* pTcb = Os_Internal_GetTaskControlBlockByTaskID (TaskID);
+    TaskControlBlock* pTcb   = NULL;
+    StatusType        status = Os_Internal_GetTaskControlBlockByTaskID (TaskID, &pTcb);
+    if (status != E_OK)
+    {
+        return status;
+    }
 
     /* Requirement: Target task must be an Extended Task to have events */
     if (pTcb->TaskKind != TASK_KIND_EXTENDED_TASK || pTcb->WaitMask == 0)

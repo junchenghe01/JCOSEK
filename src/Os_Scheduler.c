@@ -47,69 +47,10 @@
  * ========================================================================= */
 StatusType Schedule (void)
 {
-    StatusType status = E_NOT_OK;
-
-    /* 1. Locate the highest priority level with ready tasks in O(1) or O(N_groups) */
-    uint16 highest_prio = Os_Internal_GetHighestPriorityIndex ();
-
-    /**
-     * If no tasks are ready (even the Idle task is missing), this indicates a
-     * severe kernel panic. Entering a debug-friendly hang state.
-     */
-    if (highest_prio == 0xFFFF)
-    {
-        while (1)
-        {
-            /**
-             * [DEBUG] Check GIC Interrupt Acknowledge Register (IAR).
-             * If IAR != 1023, an interrupt is pending but failed to trigger the vector.
-             */
-            uint32 iar = *(volatile uint32*)(0x1e00010c);
-            if (iar != 1023)
-            {
-                /* Hardware has pending IRQ; check VBAR or Global Interrupt Enable */
-            }
-        }
-    }
-
-    /**
-     * 2. Fetch the next task to run.
-     * ReadyQueues[p] always points to the 'Head' of the circular list for that priority.
-     */
-    TaskControlBlock* pNextTask = ocb.ReadyQueues[highest_prio];
-
-    /**
-     * 3. Determine if a context switch is required.
-     * Switch if:
-     *   - The next task is different from the current task, AND
-     *   - The current task is no longer in RUNNING state (e.g., Suspended/Waiting).
-     */
-    if (pNextTask != ocb.pCurrentTask && ocb.pCurrentTask->TaskState != TASK_STATE_RUNNING)
-    {
-        /* [TODO (HE Juncheng/2026-03-15)] Handle the self-switch scenario to prevent system hang */
-        TaskControlBlock* pOldTask = ocb.pCurrentTask;
-
-        /* Update global kernel state to the new task */
-        ocb.pCurrentTask = pNextTask;
-
-        /**
-         * 4. Perform Architecture-specific Context Switch (Assembly).
-         * [UNIMPLEMENTED] Handling Os_FirstStart if pOldTask is NULL.
-         */
-        Os_ContextSwitch (pOldTask, pNextTask);
-        status = E_OK;
-    }
-    else
-    {
-        /**
-         * Fallback: If the highest priority task is the current one, but it is
-         * not in RUNNING state, the system must enter Idle mode.
-         */
-        if (ocb.pCurrentTask->TaskState != TASK_STATE_RUNNING)
-        {
-            Os_Internal_EnterIdleMode ();
-        }
-    }
+    StatusType status;
+    SuspendOSInterrupts ();
+    status = Os_Internal_Schedule (&ocb);
+    ResumeOSInterrupts ();
     return status;
 }
 
@@ -360,4 +301,72 @@ void Os_Internal_EnterIdleMode (void)
         // __asm__ volatile ("wfi");
         portWAIT_FOR_INTERRUPT ();
     }
+}
+
+StatusType Os_Internal_Schedule (OsControlBlock* pOcb)
+{
+    StatusType status = E_NOT_OK;
+
+    /* 1. Locate the highest priority level with ready tasks in O(1) or O(N_groups) */
+    uint16 highest_prio = Os_Internal_GetHighestPriorityIndex ();
+
+    /**
+     * If no tasks are ready (even the Idle task is missing), this indicates a
+     * severe kernel panic. Entering a debug-friendly hang state.
+     */
+    if (highest_prio == 0xFFFF)
+    {
+        while (1)
+        {
+            /**
+             * [DEBUG] Check GIC Interrupt Acknowledge Register (IAR).
+             * If IAR != 1023, an interrupt is pending but failed to trigger the vector.
+             */
+            uint32 iar = *(volatile uint32*)(0x1e00010c);
+            if (iar != 1023)
+            {
+                /* Hardware has pending IRQ; check VBAR or Global Interrupt Enable */
+            }
+        }
+    }
+
+    /**
+     * 2. Fetch the next task to run.
+     * ReadyQueues[p] always points to the 'Head' of the circular list for that priority.
+     */
+    TaskControlBlock* pNextTask = ocb.ReadyQueues[highest_prio];
+
+    /**
+     * 3. Determine if a context switch is required.
+     * Switch if:
+     *   - The next task is different from the current task, AND
+     *   - The current task is no longer in RUNNING state (e.g., Suspended/Waiting).
+     */
+    if (pNextTask != ocb.pCurrentTask && ocb.pCurrentTask->TaskState != TASK_STATE_RUNNING)
+    {
+        /* [TODO (HE Juncheng/2026-03-15)] Handle the self-switch scenario to prevent system hang */
+        TaskControlBlock* pOldTask = ocb.pCurrentTask;
+
+        /* Update global kernel state to the new task */
+        ocb.pCurrentTask = pNextTask;
+
+        /**
+         * 4. Perform Architecture-specific Context Switch (Assembly).
+         * [UNIMPLEMENTED] Handling Os_FirstStart if pOldTask is NULL.
+         */
+        Os_ContextSwitch (pOldTask, pNextTask);
+        status = E_OK;
+    }
+    else
+    {
+        /**
+         * Fallback: If the highest priority task is the current one, but it is
+         * not in RUNNING state, the system must enter Idle mode.
+         */
+        if (ocb.pCurrentTask->TaskState != TASK_STATE_RUNNING)
+        {
+            Os_Internal_EnterIdleMode ();
+        }
+    }
+    return status;
 }

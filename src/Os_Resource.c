@@ -42,124 +42,27 @@
  * ========================================================================= */
 static ResourceControlBlock* Os_Internal_GetResourceByResId (ResourceType ResID);
 static void                  Os_Internal_EnqueueReadyTaskHead (TaskControlBlock* pTcb, PriorityType originalPriority);
+static StatusType            Os_Internal_GetResource (ResourceType ResID, OsControlBlock* pOcb);
+static StatusType            Os_Internal_ReleaseResource (ResourceType ResID, OsControlBlock* pOcb);
 /* ============================================================================
  * Public API Implementation
  * ========================================================================= */
 StatusType GetResource (ResourceType ResID)
 {
-    /* 1. Basic Parameter Validation */
-    if (ResID >= RES_MAX || ResID == 0)
-    {
-        return E_OS_ID;
-    }
-
-    /* 2. Retrieve Resource Control Block */
-    ResourceControlBlock* res = Os_Internal_GetResourceByResId (ResID);
-
-    /**
-     * 3. Check for Resource Occupancy.
-     * [NOTE]: Per OSEK spec, a task should not be blocked here.
-     * If the resource is already held by another task, it is an application error.
-     */
-    if (res->owner != NULL && res->owner != ocb.pCurrentTask->TaskID)
-    {
-        /**
-         * [FIXME]: In OSEK, if the ceiling protocol is configured correctly,
-         * this condition should technically never be met for tasks.
-         */
-        return E_OS_ACCESS;
-    }
-
-    /* 4. Acquire Resource and Save Pre-acquisition State */
-    res->owner            = ocb.pCurrentTask->TaskID;
-    res->originalPriority = ocb.pCurrentTask->CurrentPriority;
-    res->nestingCount++;
-    ocb.pCurrentTask->ResourcesCount++;
-
-    /**
-     * 5. Priority Promotion (Ceiling Protocol).
-     * If the resource's ceiling priority is higher than the current task's priority,
-     * promote the task immediately to prevent preemption by intermediate priority tasks.
-     */
-    if (res->ceilingPriority > ocb.pCurrentTask->CurrentPriority)
-    {
-        ocb.pCurrentTask->CurrentPriority = res->ceilingPriority;
-
-        /**
-         * Re-position the task in the ready queue.
-         * It moves to the HEAD of the new priority level.
-         */
-        Os_Internal_EnqueueReadyTaskHead (ocb.pCurrentTask, res->originalPriority);
-    }
-
-    return E_OK;
+    StatusType status;
+    SuspendOSInterrupts ();
+    status = Os_Internal_GetResource (ResID, &ocb);
+    ResumeOSInterrupts ();
+    return status;
 }
 
 StatusType ReleaseResource (ResourceType ResID)
 {
-    /* 1. Basic Parameter Validation */
-    if (ResID >= RES_MAX || ResID == 0)
-    {
-        return E_OS_ID;
-    }
-
-    /* 2. Retrieve Resource Control Block */
-    ResourceControlBlock* res = Os_Internal_GetResourceByResId (ResID);
-
-    /* 3. Ownership and Nesting Verification */
-    if (res->owner != ocb.pCurrentTask->TaskID)
-    {
-        return E_OS_NOFUNC; /* Task does not own this resource */
-    }
-    PriorityType _currentPriority = 0;
-
-    if (res->nestingCount == 0)
-    {
-        return E_OS_NOFUNC; /* Internal Error: Nesting count underflow */
-    }
-
-    /* 4. Update Resource and Task Counters */
-    res->nestingCount--;
-    if (ocb.pCurrentTask->ResourcesCount == 0)
-    {
-        return E_OS_NOFUNC; /* Internal Error: Task resource count underflow */
-    }
-    ocb.pCurrentTask->ResourcesCount--;
-
-    /* 5. Complete Release Logic */
-    if (res->nestingCount == 0)
-    {
-        /* Fully release the resource ownership */
-        res->owner = NULL;
-
-        /**
-         * [TODO (HE Juncheng/2026-03-15)]: Wake up waiting tasks if implementing a non-PCP blocking model.
-         * Note: Standard OSEK PCP does not use waiting lists for resources.
-         */
-        // WakeHighestWaitingTask(res);
-
-        /**
-         * 6. Priority Restoration.
-         * Demote the task's priority back to its original level.
-         */
-        _currentPriority                  = ocb.pCurrentTask->CurrentPriority;
-        ocb.pCurrentTask->CurrentPriority = res->originalPriority;
-
-        /**
-         * Re-insert the task into the ready queue at the new (lower) priority.
-         * The 'flag=1' indicates a priority-change-driven requeue operation.
-         */
-        Os_Internal_EnqueueReadyTask (ocb.pCurrentTask, _currentPriority, 1);
-    }
-
-    /**
-     * 7. Reschedule immediately.
-     * Since the task's priority has likely decreased, other higher-priority
-     * tasks may now be eligible to preempt.
-     */
-    Schedule ();
-
-    return E_OK;
+    StatusType status;
+    SuspendOSInterrupts ();
+    status = Os_Internal_ReleaseResource (ResID, &ocb);
+    ResumeOSInterrupts ();
+    return status;
 }
 /* ============================================================================
  * Internal Helper Functions
@@ -270,4 +173,144 @@ static void Os_Internal_EnqueueReadyTaskHead (TaskControlBlock* pTcb, PriorityTy
     }
 
     /* 2.3 Note: TaskState update (e.g., to READY) should be handled by the caller */
+}
+
+/**
+ * @brief Internal implementation of GetResource, which performs the actual logic of resource acquisition.
+ * @details This function is called by the public GetResource API after validating parameters and system state.
+ *
+ * @param[in] ResID The unique identifier of the resource to acquire.
+ * @param[in] pOcb Pointer to the OS control block containing the current task and system state.
+ * @return StatusType
+ * @retval E_OK if the resource was successfully acquired.
+ * @retval E_OS_ID if the ResID is invalid.
+ * @retval E_OS_ACCESS if the resource is already held by another task.
+ */
+static StatusType Os_Internal_GetResource (ResourceType ResID, OsControlBlock* pOcb)
+{
+    /* 1. Basic Parameter Validation */
+    if (ResID >= RES_MAX || ResID == 0)
+    {
+        return E_OS_ID;
+    }
+
+    /* 2. Retrieve Resource Control Block */
+    ResourceControlBlock* res = Os_Internal_GetResourceByResId (ResID);
+
+    /**
+     * 3. Check for Resource Occupancy.
+     * [NOTE]: Per OSEK spec, a task should not be blocked here.
+     * If the resource is already held by another task, it is an application error.
+     */
+    if (res->owner != NULL && res->owner != pOcb->pCurrentTask->TaskID)
+    {
+        /**
+         * [FIXME]: In OSEK, if the ceiling protocol is configured correctly,
+         * this condition should technically never be met for tasks.
+         */
+        return E_OS_ACCESS;
+    }
+
+    /* 4. Acquire Resource and Save Pre-acquisition State */
+    res->owner            = pOcb->pCurrentTask->TaskID;
+    res->originalPriority = pOcb->pCurrentTask->CurrentPriority;
+    res->nestingCount++;
+    pOcb->pCurrentTask->ResourcesCount++;
+
+    /**
+     * 5. Priority Promotion (Ceiling Protocol).
+     * If the resource's ceiling priority is higher than the current task's priority,
+     * promote the task immediately to prevent preemption by intermediate priority tasks.
+     */
+    if (res->ceilingPriority > pOcb->pCurrentTask->CurrentPriority)
+    {
+        pOcb->pCurrentTask->CurrentPriority = res->ceilingPriority;
+
+        /**
+         * Re-position the task in the ready queue.
+         * It moves to the HEAD of the new priority level.
+         */
+        Os_Internal_EnqueueReadyTaskHead (pOcb->pCurrentTask, res->originalPriority);
+    }
+
+    return E_OK;
+}
+
+/**
+ * @brief Implements the logic for a task to yield the CPU voluntarily to other tasks of the same priority.
+ * @details This function is called by the public YieldTask API after validating parameters and system state.
+ *
+ * @param[in] ResID The unique identifier of the resource to release.
+ * @param[in] pOcb Pointer to the OS control block containing the current task and system state.
+ * @return StatusType
+ * @retval E_OK if the resource was successfully released and the task yielded.
+ * @retval E_OS_ID if the ResID is invalid.
+ * @retval E_OS_NOFUNC if the task does not own the resource or if there is an internal error with resource/task state.
+ */
+static StatusType Os_Internal_ReleaseResource (ResourceType ResID, OsControlBlock* pOcb)
+{
+    /* 1. Basic Parameter Validation */
+    if (ResID >= RES_MAX || ResID == 0)
+    {
+        return E_OS_ID;
+    }
+
+    /* 2. Retrieve Resource Control Block */
+    ResourceControlBlock* res = Os_Internal_GetResourceByResId (ResID);
+
+    /* 3. Ownership and Nesting Verification */
+    if (res->owner != pOcb->pCurrentTask->TaskID)
+    {
+        return E_OS_NOFUNC; /* Task does not own this resource */
+    }
+    PriorityType _currentPriority = 0;
+
+    if (res->nestingCount == 0)
+    {
+        return E_OS_NOFUNC; /* Internal Error: Nesting count underflow */
+    }
+
+    /* 4. Update Resource and Task Counters */
+    res->nestingCount--;
+    if (pOcb->pCurrentTask->ResourcesCount == 0)
+    {
+        return E_OS_NOFUNC; /* Internal Error: Task resource count underflow */
+    }
+    pOcb->pCurrentTask->ResourcesCount--;
+
+    /* 5. Complete Release Logic */
+    if (res->nestingCount == 0)
+    {
+        /* Fully release the resource ownership */
+        res->owner = NULL;
+
+        /**
+         * [TODO (HE Juncheng/2026-03-15)]: Wake up waiting tasks if implementing a non-PCP blocking model.
+         * Note: Standard OSEK PCP does not use waiting lists for resources.
+         */
+        // WakeHighestWaitingTask(res);
+
+        /**
+         * 6. Priority Restoration.
+         * Demote the task's priority back to its original level.
+         */
+        _currentPriority                    = pOcb->pCurrentTask->CurrentPriority;
+        pOcb->pCurrentTask->CurrentPriority = res->originalPriority;
+
+        /**
+         * Re-insert the task into the ready queue at the new (lower) priority.
+         * The 'flag=1' indicates a priority-change-driven requeue operation.
+         */
+        Os_Internal_EnqueueReadyTask (pOcb->pCurrentTask, _currentPriority, 1);
+    }
+
+    /**
+     * 7. Reschedule immediately.
+     * Since the task's priority has likely decreased, other higher-priority
+     * tasks may now be eligible to preempt.
+     */
+    // Schedule ();
+    Os_Internal_Schedule (pOcb);
+
+    return E_OK;
 }

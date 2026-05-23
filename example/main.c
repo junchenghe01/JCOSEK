@@ -181,6 +181,14 @@ void Os_CreateTask (TaskRefType taskId, void (*entry) (void), uint32* stack, uin
     tasks[ocb.TasksSize].TaskID          = taskId;
     tasks[ocb.TasksSize].TaskKind        = kind;
     tasks[ocb.TasksSize].isAutoStart     = isAutoStart;
+    if (isAutoStart)
+    {
+        tasks[ocb.TasksSize].activation_count = 1;
+    }
+    else
+    {
+        tasks[ocb.TasksSize].activation_count = 0;
+    }
     ocb.TasksSize++;
 }
 void StartHooks (void) {
