@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 技术讨论
+    url: https://github.com/junchenghe01/JCOSEK/discussions
+    about: 关于项目使用、设计等通用问题，请在讨论区提出
+  - name: 安全问题
+    url: https://github.com/junchenghe01/JCOSEK/security/advisories
+    about: 发现安全漏洞？请通过安全公告报告
