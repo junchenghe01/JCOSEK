@@ -38,19 +38,18 @@ ActivateTask (Task Activation)
 ---
 
 ## 🟡 Future Milestones (v0.3 & Beyond)
-*Focus: Resource Management and Safety*
+更新代码架构
+服务API和服务逻辑拆分方便测试
+审查需求，并构建单元测试代码
 
-
-- [ ] EcuM (ECU State Manager)：管理ECU的生命周期，包括启动、关闭和模式切换，协调电源和通信状态，但需注意多核下的主从模式。
-- [ ] BswM (Basic Software Mode Manager)：协调BSW模块间的模式切换，促进模块间状态转换，但需小心模式仲裁以避免冲突。
-- [ ] Tm (Time Service)：提供时间相关服务，如定时器和时间测量，支持应用和BSW的定时需求。
-
-CAN
-canif
-pdur
-com
-asw
-实现要给C状态机，配置可视化 Yakindu Statechart Tools
+适配主流的其次
+恩智浦 (NXP) - S32K & S32G 系列
+英飞凌 (Infineon) - AURIX 系列
+意法半导体 (ST) - Stellar & SPC5 系列
+瑞萨 (Renesas) - RH850 系列
+芯驰 (SemiDrive): E3 系列（高性能 MCU）。
+旗宣 (Flagchip): FC7300 系列（基于 Cortex-M7）。
+杰发科技 (AutoChips): AC7840x 系列。
 ---
 
 ## 📈 Long-Term Vision

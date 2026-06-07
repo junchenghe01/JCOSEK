@@ -794,6 +794,10 @@ typedef struct TaskControlBlock
     TaskRefType TaskID;
     /** @brief Distinguishes between Basic and Extended task models. */
     TaskKindType TaskKind;
+    /** @brief Maximum number of times the task can be activated. */
+    uint32 max_activation;
+    /** @brief Current number of pending activations. */
+    uint32 activation_count;
 
     /** --- Scheduling Information --- */
     /** @brief Fixed priority assigned during configuration. */

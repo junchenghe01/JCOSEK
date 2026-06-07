@@ -72,49 +72,27 @@
 /* ============================================================================
  * Static Function Prototypes
  * ========================================================================= */
-static void Os_Internal_Hardware_Reset (void);
+static void        Os_Internal_Hardware_Reset (void);
+static void        Os_Internal_Start (OsControlBlock* pOcb);
+static AppModeType Os_Internal_GetActiveApplicationMode (OsControlBlock* pOcb);
 /* ============================================================================
  * Public API Implementation
  * ========================================================================= */
 
 void Os_Start (void)
 {
-    /* Find the initial task to run based on priority bitmap */
-    uint16 highest_prio = Os_Internal_GetHighestPriorityIndex ();
-
-    /* Safety Check: If no task is ready, the system cannot start */
-    if (highest_prio == 0xFFFF)
-    {
-        /* TODO (HE Juncheng/2026-03-15): Replace with a proper Kernel Panic or Idle Task */
-        while (1)
-            ;
-    }
-
-    /* Retrieve the TCB of the highest priority task */
-    TaskControlBlock* pFirstTask = ocb.ReadyQueues[highest_prio];
-
-    /* Update kernel state to reflect the first running task */
-    pFirstTask->TaskState = TASK_STATE_RUNNING;
-    ocb.pCurrentTask      = pFirstTask;
-
-    // /**
-    //  * Context Switch: Manually restore task context (ARM Architecture)
-    //  * 1. mov sp, %0        : Load the saved stack pointer from TCB
-    //  * 2. pop {r4-r11, lr}  : Restore callee-saved registers and Link Register
-    //  * 3. bx lr             : Branch to task entry point (starts execution)
-    //  */
-    // __asm__ volatile (
-    //     "mov sp, %0\n"
-    //     "pop {r4-r11, lr}\n"
-    //     "bx lr\n"
-    //     :
-    //     : "r"(pFirstTask->StackPtr));
-    portSTART_FIRST_TASK (pFirstTask->StackPtr);
+    SuspendOSInterrupts ();
+    Os_Internal_Start (&ocb);
+    ResumeOSInterrupts ();
 }
 
 AppModeType GetActiveApplicationMode (void)
 {
-    return ocb.appMode;
+    AppModeType mode;
+    SuspendOSInterrupts ();
+    mode = Os_Internal_GetActiveApplicationMode (&ocb);
+    ResumeOSInterrupts ();
+    return mode;
 }
 
 __attribute__ ((weak)) void StartupHook (void)
@@ -175,6 +153,7 @@ __attribute__ ((weak)) void ShutdownHook (StatusType Error)
 {
     // EcuM_Shutdown ();
 }
+
 /**
  * @brief  Shuts down the operating system.
  * @details This service aborts the overall OS execution. It is the final destination
@@ -343,4 +322,52 @@ void Os_Internal_TriggerAlarmAction (AlarmControlBlock* pAlarm)
             /* Error Handling: Unsupported or undefined alarm action */
             break;
     }
+}
+
+/**
+ * @brief Starts the first task based on the highest priority ready in the system.
+ * @details This function is called by Os_Start() after all initialization and
+ *
+ * @param[in] pOcb Pointer to the OS control block containing the ready queues and task states.
+ * @return void This function does not return, as it performs a context switch to the first task.
+ */
+static void Os_Internal_Start (OsControlBlock* pOcb)
+{
+    /* Find the initial task to run based on priority bitmap */
+    uint16 highest_prio = Os_Internal_GetHighestPriorityIndex ();
+
+    /* Safety Check: If no task is ready, the system cannot start */
+    if (highest_prio == 0xFFFF)
+    {
+        /* TODO (HE Juncheng/2026-03-15): Replace with a proper Kernel Panic or Idle Task */
+        while (1)
+            ;
+    }
+
+    /* Retrieve the TCB of the highest priority task */
+    TaskControlBlock* pFirstTask = pOcb->ReadyQueues[highest_prio];
+
+    /* Update kernel state to reflect the first running task */
+    pFirstTask->TaskState = TASK_STATE_RUNNING;
+    pOcb->pCurrentTask    = pFirstTask;
+
+    /* The outermost SuspendOSInterrupts() in Os_Start() will never be
+     * matched by a ResumeOSInterrupts() (this function doesn't return).
+     * Reset the suspension state so PendSV and other OS interrupts work. */
+    portRESET_INTERRUPT_SUSPENSION ();
+
+    portSTART_FIRST_TASK (pFirstTask->StackPtr);
+}
+
+/**
+ * @brief Get the Active Application Mode objectect identifier.
+ * @details This function returns the application mode identifier that was
+ *
+ * @param[in] pOcb Pointer to the OS control block containing the application mode information.
+ * @return AppModeType The active application mode.
+ * @note   This function is typically called by tasks or ISRs to determine the current operating mode of the system.
+ */
+static AppModeType Os_Internal_GetActiveApplicationMode (OsControlBlock* pOcb)
+{
+    return pOcb->appMode;
 }

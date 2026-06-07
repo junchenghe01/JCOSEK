@@ -1,15 +1,15 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
             "label": "Run QEMU Server",
             "type": "shell",
-            "command": "pkill -9 qemu-system-arm || true; qemu-system-arm -M vexpress-a9 -m 512M -kernel ${workspaceFolder}/build/JCOSEK.elf -nographic -s -S",
-            "isBackground": true,
-            "problemMatcher": {
+            "command": "pkill -9 qemu-system-arm || true; qemu-system-arm -M vexpress-a9 -m 512M -kernel build/JCOSEK.elf -nographic -s -S",
+            "options": {
+                "cwd": "${workspaceFolder}"
             },
+            "isBackground": true,
+            "problemMatcher": {},
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -19,15 +19,78 @@
             "dependsOn": "Build RTOS"
         },
         {
+            "label": "Build S32K144",
+            "type": "shell",
+            "command": "export PATH=\"/d/NXP/S32DS.3.6.1/S32DS/build_tools/gcc_v9.2/gcc-9.2-arm32-eabi/bin:$PATH\" && rm -f build_s32k144/CMakeCache.txt && cmake -B build_s32k144 -DTARGET_PLATFORM=s32k144 -G \"Unix Makefiles\" -DCMAKE_MAKE_PROGRAM=\"/d/NXP/S32DS.3.6.1/S32DS/build_tools/msys32/usr/bin/make.exe\" && cmake --build build_s32k144 -j$(nproc 2>/dev/null || echo 4)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Start J-Link GDB Server (S32K144)",
+            "type": "shell",
+            "command": "\"/d/Program Files/SEGGER/JLink_V896/JLinkGDBServerCL.exe\" -device S32K144 -if SWD -speed 4000 -port 2331",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "Waiting for GDB connection",
+                    "file": 1,
+                    "location": 1,
+                    "message": 1
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": "Waiting for GDB connection"
+                }
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "dependsOn": "Build S32K144"
+        },
+        {
+            "label": "Stop J-Link GDB Server",
+            "type": "shell",
+            "command": "cmd /c \"taskkill /F /IM JLinkGDBServerCL.exe >nul 2>&1\" || true",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
             "label": "Build RTOS",
             "type": "shell",
-            "command": "cd ${workspaceFolder}/build && rm -rf * && cmake -DSYS_TEST=test_05_ISR .. && cmake --build .",
+            "command": "rm -rf build/* && cmake -B build -DSYS_TEST=test_05_ISR && cmake --build build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": []
         },
         {
             "label": "Build doc",
             "type": "shell",
-            "command": "cd ${workspaceFolder}/build && rm -rf * && cmake -DSYS_TEST=test_05_ISR .. && cmake --build . --target doc",
+            "command": "rm -rf build/* && cmake -B build -DSYS_TEST=test_05_ISR && cmake --build build --target doc",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "problemMatcher": []
         }
     ]

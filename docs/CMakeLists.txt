@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(JCOSEK NONE)
 
 # Doxygen 自动生成文档
-find_package(Doxygen REQUIRED)
+find_package(Doxygen QUIET)
 
 if(DOXYGEN_FOUND)
     set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
