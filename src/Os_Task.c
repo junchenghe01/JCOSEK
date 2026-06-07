@@ -257,16 +257,16 @@ static StatusType Os_Internal_TerminateTask (OsControlBlock* pOcb)
     // if (ocb.pCurrentTask == NULL) return E_OS_SYS_ASSERTION;
 
     /* Decrement the activation count of the current task */
-    if (pOcb->pCurrentTask->ActivationCount > 0)
+    if (pOcb->pCurrentTask->activation_count > 0)
     {
-        pOcb->pCurrentTask->ActivationCount--;
+        pOcb->pCurrentTask->activation_count--;
     }
     else
     {
         return E_OS_LIMIT; /* No pending activations to consume */
     }
 
-    if (pOcb->pCurrentTask->ActivationCount > 0)
+    if (pOcb->pCurrentTask->activation_count > 0)
     {
         /* Transition current task to SUSPENDED to prevent it from being rescheduled */
         pOcb->pCurrentTask->TaskState = TASK_STATE_READY;

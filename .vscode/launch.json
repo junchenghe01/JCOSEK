@@ -20,16 +20,84 @@
             "miDebuggerServerAddress": "127.0.0.1:1234",
             // "preLaunchTask": "Run QEMU Server",
             // "setupCommands": [
-            //     { 
-            //         "description": "设置架构为 ARM", 
+            //     {
+            //         "description": "设置架构为 ARM",
             //         "text": "set architecture arm",
             //         "ignoreFailures": false},
-            //     { 
-            //         "description": "延长超时以防网络波动", 
-            //         "text": "set remotetimeout 20" 
+            //     {
+            //         "description": "延长超时以防网络波动",
+            //         "text": "set remotetimeout 20"
             //     },
             //     /*  { "text": "target remote :1234" } */
             // ]
+        },
+        {
+            "name": "Debug S32K144 (Cortex-Debug + SVD)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build_s32k144/JCOSEK_EXAMPLE.elf",
+            "servertype": "jlink",
+            "serverpath": "D:\\Program Files\\SEGGER\\JLink_V896\\JLinkGDBServerCL.exe",
+            "armToolchainPath": "D:\\NXP\\S32DS.3.6.1\\S32DS\\build_tools\\gcc_v9.2\\gcc-9.2-arm32-eabi\\bin",
+            "gdbPath": "D:\\NXP\\S32DS.3.6.1\\S32DS\\tools\\gdb-arm\\arm32-eabi\\bin\\arm-none-eabi-gdb.exe",
+            "device": "S32K144",
+            "interface": "swd",
+            "svdFile": "${workspaceFolder}/portable/bsp/s32k144/S32K144.svd",
+            "runToEntryPoint": "main",
+            "preLaunchTask": "Build S32K144",
+            "preRestartCommands": [
+                "monitor reset",
+                "load",
+                "break main",
+                "break PendSV_Handler"
+            ]
+        },
+        {
+            "name": "Debug S32K144 (J-Link GDB Server)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build_s32k144/JCOSEK_EXAMPLE.elf",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "D:\\NXP\\S32DS.3.6.1\\S32DS\\build_tools\\gcc_v9.2\\gcc-9.2-arm32-eabi\\bin\\arm-none-eabi-gdb.exe",
+            "miDebuggerServerAddress": "localhost:2331",
+            "preLaunchTask": "Start J-Link GDB Server (S32K144)",
+            "postDebugTask": "Stop J-Link GDB Server",
+            "setupCommands": [
+                {
+                    "description": "Connect to J-Link GDB Server",
+                    "text": "target remote localhost:2331",
+                    "ignoreFailures": false
+                },
+                {
+                    "description": "Halt target",
+                    "text": "monitor halt",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Reset target",
+                    "text": "monitor reset",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Load firmware to Flash",
+                    "text": "load",
+                    "ignoreFailures": false
+                },
+                {
+                    "description": "Break at main",
+                    "text": "break main",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Break at PendSV",
+                    "text": "break PendSV_Handler",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }

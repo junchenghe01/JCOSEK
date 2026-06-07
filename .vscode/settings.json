@@ -4,8 +4,15 @@
         "reg_esys_gpio.h": "c",
         "dio_types.h": "c"
     },
-    "cmake.sourceDirectory": "/home/jche/project/JCOSEK",
+    "cmake.sourceDirectory": "E:\\Project\\JCOSEK",
     "cmake.configureArgs": [
         "-DSYS_TEST=test_05_ISR"
-    ]
+    ],
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "terminal.integrated.profiles.windows": {
+        "Git Bash": {
+            "path": "D:\\Program Files\\Git\\bin\\bash.exe",
+            "args": ["--login"]
+        }
+    }
 }

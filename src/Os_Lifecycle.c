@@ -351,18 +351,11 @@ static void Os_Internal_Start (OsControlBlock* pOcb)
     pFirstTask->TaskState = TASK_STATE_RUNNING;
     pOcb->pCurrentTask    = pFirstTask;
 
-    // /**
-    //  * Context Switch: Manually restore task context (ARM Architecture)
-    //  * 1. mov sp, %0        : Load the saved stack pointer from TCB
-    //  * 2. pop {r4-r11, lr}  : Restore callee-saved registers and Link Register
-    //  * 3. bx lr             : Branch to task entry point (starts execution)
-    //  */
-    // __asm__ volatile (
-    //     "mov sp, %0\n"
-    //     "pop {r4-r11, lr}\n"
-    //     "bx lr\n"
-    //     :
-    //     : "r"(pFirstTask->StackPtr));
+    /* The outermost SuspendOSInterrupts() in Os_Start() will never be
+     * matched by a ResumeOSInterrupts() (this function doesn't return).
+     * Reset the suspension state so PendSV and other OS interrupts work. */
+    portRESET_INTERRUPT_SUSPENSION ();
+
     portSTART_FIRST_TASK (pFirstTask->StackPtr);
 }
 

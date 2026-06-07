@@ -1,0 +1,44 @@
+{
+    "configurations": [
+        {
+            "name": "VExpress-A9 (QEMU)",
+            "includePath": [
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/portable/cpu/cortex_a9/gcc/**",
+                "${workspaceFolder}/portable/bsp/vexpress_a9_qemu/**"
+            ],
+            "defines": [],
+            "compilerPath": "D:\\NXP\\S32DS.3.6.1\\S32DS\\build_tools\\gcc_v9.2\\gcc-9.2-arm32-eabi\\bin\\arm-none-eabi-gcc.exe",
+            "cStandard": "c99",
+            "intelliSenseMode": "gcc-arm",
+            "compilerArgs": ["-mcpu=cortex-a9"]
+        },
+        {
+            "name": "S32K144 (Cortex-M4)",
+            "includePath": [
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/portable/cpu/cortex_m4/gcc/**",
+                "${workspaceFolder}/portable/bsp/s32k144/**",
+                "${workspaceFolder}/example/s32k144/**",
+                "D:\\NXP\\S32DS.3.6.1\\S32DS\\build_tools\\gcc_v9.2\\gcc-9.2-arm32-eabi\\arm-none-eabi\\include\\**"
+            ],
+            "defines": [
+                "ENABLE_FPU",
+                "DISABLE_WDOG",
+                "CPU_S32K144"
+            ],
+            "compilerPath": "D:\\NXP\\S32DS.3.6.1\\S32DS\\build_tools\\gcc_v9.2\\gcc-9.2-arm32-eabi\\bin\\arm-none-eabi-gcc.exe",
+            "cStandard": "c99",
+            "intelliSenseMode": "gcc-arm",
+            "compilerArgs": [
+                "-mcpu=cortex-m4",
+                "-mthumb",
+                "-mfloat-abi=hard",
+                "-mfpu=fpv4-sp-d16"
+            ]
+        }
+    ],
+    "version": 4
+}
