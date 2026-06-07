@@ -1,158 +1,158 @@
-# 贡献指南
+# Contributing Guide
 
-感谢你对 JCOSEK 项目的关注！本指南将帮助你理解如何以最有效的方式参与本项目。
+Thank you for your interest in the JCOSEK project! This guide will help you understand how to contribute effectively to our open-source community.
 
-## 行为准则
+## Code of Conduct
 
-我们致力于为所有贡献者提供包容、友好的环境。请参考我们的 [行为准则](./CODE_OF_CONDUCT.md)。
+We are committed to providing an inclusive and welcoming environment for all contributors. Please review our [Code of Conduct](./CODE_OF_CONDUCT.md).
 
-## 如何贡献
+## How to Contribute
 
-### 1. 报告 Bug
+### 1. Reporting Bugs
 
-- **检查现有 Issue**：在提交前，请先搜索 [Issues](https://github.com/junchenghe01/JCOSEK/issues) 确认是否已有人报告
-- **提供详细信息**：
-  - 问题的清晰描述
-  - 复现步骤
-  - 预期行为 vs 实际行为
-  - 环境信息（硬件平台、编译工具链版本、操作系统等）
-  - 错误日志或输出
-- **使用 Bug Report 模板**：创建新 Issue 时选择相应模板
+- **Check Existing Issues**: Before submitting a new report, please search [Issues](https://github.com) to confirm if it has already been reported.
+- **Provide Detailed Information**:
+  - A clear and descriptive summary of the issue.
+  - Precise steps to reproduce the bug.
+  - Expected behavior vs. actual behavior.
+  - Environment details (hardware platform, compiler toolchain version, OS, etc.).
+  - Error logs, terminal outputs, or screenshots.
+- **Use the Bug Report Template**: Select the appropriate bug template when creating a new issue.
 
-### 2. 建议新功能
+### 2. Suggesting Enhancements
 
-- **创建 Enhancement Issue**：使用 Feature Request 模板
-- **描述使用场景**：为什么需要这���功能
-- **提供示例代码或伪代码**（如果适用）
-- **讨论实现方案**：参与社区讨论
+- **Create an Enhancement Issue**: Use the Feature Request template.
+- **Describe the Use Case**: Explain why this feature is needed and what pain points it resolves.
+- **Provide Code Snippets**: Include example code or pseudocode if applicable.
+- **Discuss the Solution**: Actively participate in the technical discussion within the issue thread.
 
-### 3. 提交代码
+### 3. Code Contributions
 
-#### 前置要求
+#### Prerequisites
+- Solid understanding of C programming.
+- Familiarity with embedded development or assembly language (depending on the module).
+- Proficiency with the standard Git branching workflow.
 
-- C 语言基础知识
-- 了解嵌入式开发或汇编语言（根据模块）
-- 熟悉 Git 工作流
-
-#### 开发环境设置
-
+#### Setting Up the Development Environment
 ```bash
-# 克隆仓库
-git clone https://github.com/junchenghe01/JCOSEK.git
+# Clone the repository
+git clone https://github.com
 cd JCOSEK
 
-# 创建本地开发分支
-git checkout -b feature/your-feature-name
-
-# 安装依赖（如需要）
-# 参见 README.md 中的构建说明
+# Create a local development branch (recommended prefixes: feat/ or fix/)
+git checkout -b feat/your-feature-name
 ```
+*Note: For detailed instructions on compiling, flashing, and running the code, please refer to the build section in `README.md`.*
 
-#### 编码规范
+#### Coding Standards
 
-1. **代码风格**
-   - 使用 4 个空格缩进（不使用 Tab）
-   - 遵循 Linux 内核编码风格
-   - 变量和函数使用有意义的英文名称
-   - 添加必要的注释，特别是复杂算法和硬件交互部分
+1. **Code Style**
+   - Use **4 spaces for indentation** (do NOT use Tab characters).
+   - Strictly follow the **Linux Kernel Coding Style**.
+   - Use meaningful English names for variables and functions. Avoid Pinyin or cryptic abbreviations.
+   - Add necessary comments, especially for complex algorithms and direct hardware/register interactions.
 
-2. **代码质量**
-   - 在提交前编译并测试
-   - 确保没有编译警告
-   - 对关键功能添加错误处理
-   - 避免魔法数字，使用 #define 常量
+2. **Code Quality**
+   - Compile and test your code locally before submitting.
+   - Ensure the build output has **zero compiler warnings**.
+   - Implement robust error handling for critical functions and hardware return statuses.
+   - Avoid magic numbers; use `#define` macro constants or `enum` types instead.
 
-3. **文件头注释**
+3. **File Header Documentation**
    ```c
    /**
     * @file filename.c
-    * @brief 简短描述
-    * @author Your Name
+    * @brief Short description of the file's primary purpose.
+    * @author Your Name <your.email@example.com>
     * @date YYYY-MM-DD
     * @version 1.0
     */
    ```
 
-4. **函数注释**
+4. **Function Documentation**
    ```c
    /**
-    * @brief 函数简介
-    * @param[in] param1 参数1说明
-    * @param[out] param2 参数2说明
-    * @return 返回值说明
+    * @brief Brief introduction to the function's functionality.
+    * @param[in] param1 Description of input parameter 1.
+    * @param[out] param2 Description of output parameter 2.
+    * @return Description of the return value (e.g., 0 for success, negative for error codes).
     */
    ```
 
-#### 提交流程
+#### Git Workflow & Submission
 
-1. **同步主分支**
+1. **Synchronize with Main Branch** (Avoid merge conflicts)
    ```bash
    git fetch origin
    git rebase origin/main
    ```
 
-2. **添加和提交**
+2. **Commit Changes with DCO Sign-off**
+   This project strictly enforces the **DCO (Developer Certificate of Origin)** sign-off mechanism to guarantee open-source copyright compliance. You **must append the `-s` flag** whenever you run `git commit`:
    ```bash
    git add .
-   git commit -m "feat: add new feature description"
+   git commit -s -m "feat: add spi driver for stm32"
    ```
+   *-s automatically appends `Signed-off-by: Your Name <your.email@example.com>` to the end of your commit message. Commits without a valid sign-off will fail the CI check.*
    
-   提交信息格式：`<type>: <subject>`
-   - **type**: feat(新功能), fix(修复), docs(文档), refactor(重构), test(测试), chore(构建/依赖)
-   - **subject**: 简明扼要（50字以内），使用命令式
+   **Commit messages** must strictly adhere to the [Conventional Commits](https://conventionalcommits.org) specification format: `<type>: <subject>`
+   - **type**: `feat` (new feature), `fix` (bug fix), `docs` (documentation), `refactor` (code refactoring), `test` (adding/fixing tests), `chore` (build tasks/dependencies).
+   - **subject**: Concise summary (under 50 characters) using the imperative mood.
 
-3. **创建 Pull Request**
+3. **Submit a Pull Request (PR)**
    ```bash
-   git push origin feature/your-feature-name
+   git push origin feat/your-feature-name
    ```
-   
-   然后在 GitHub 上创建 PR，使用 [PR 模板](./pull_request_template.md)
+   Go to the GitHub web interface to open a PR. You must fill out the [PR Template](./pull_request_template.md). Pay extra attention to:
+   - **Link Issues**: Use GitHub closing keywords in the PR description to automatically link and close related issues (e.g., `Closes #123` or `Fixes #456`).
+   - **MPL Compliance**: Clearly state if your modifications affect any files protected under the MPL-2.0 license, and list their file locations.
 
-4. **代码审查**
-   - 至少需要 1 名维护者审查
-   - 根据反馈进行修改
-   - 推送到同一分支，自动更新 PR
+4. **Code Review**
+   - At least 1 project maintainer must review and approve the PR.
+   - Address any Code Review feedback by making changes locally and pushing directly to the same branch. The PR will update automatically.
 
-5. **合并**
-   - 审查通过后由维护者合并
-   - 优先使用 Squash and Merge（保持历史整洁）
+5. **Merging**
+   - Once approved and all CI checks turn green, a maintainer will merge the PR.
+   - We prefer the **Squash and Merge** strategy. This condenses all your intermediate development commits into a single, clean commit on the main branch to keep git history pristine.
 
-### 4. 文档改进
+### 4. Documentation Improvements
 
-- 改进 README、API 文档或注释
-- 修复拼写和语法错误
-- 添加使用示例
-- 翻译文档到其他语言
+- Contributions to the README, API reference manuals, architectural design docs, or inline comments are highly welcome.
+- Fix typos, spelling mistakes, or grammatical errors.
+- Add practical board-level examples (`Examples`) showcasing real-world runtime usage.
+- Translate existing documentation into other languages.
 
-### 5. 测试
+### 5. Testing
 
-- 为新功能编写测试用例
-- 确保所有现有测试通过
-- 在不同平台/编译器上测试（如适用）
+- Write comprehensive test cases for any newly introduced modules or features.
+- Ensure all existing tests and static analysis (Linter) pass completely in your local environment.
+- When possible, perform cross-compilation tests across different hardware targets or compilers (e.g., GCC, Clang).
 
-## Pull Request 审查流程
+## Pull Request Review Process
 
-### 自动检查
+### Automated Checks (CI/CD)
+When a PR is submitted, GitHub Actions automatically triggers a series of checks. **All checks must pass before merging**:
+- ✅ Clean compilation (zero warnings or errors).
+- ✅ Automated test suite passes successfully.
+- ✅ Code style compliance (Linter) checks pass.
+- ✅ DCO sign-off validation (every commit must include `Signed-off-by`).
+- ✅ No high-risk dependency or security vulnerabilities detected.
 
-- ✅ CI/CD 管道通过（编译、测试）
-- ✅ 代码覆盖率不下降
-- ✅ 没有依赖安全漏洞
+### Manual Review
+Maintainers will evaluate the PR across several dimensions:
+- **Code Quality**: Adherence to the Linux kernel style, logical clarity, and descriptive comments.
+- **Correctness**: Validating if the expected behavior is fully achieved, including proper edge-case handling (such as transfer timeouts or buffer overflows).
+- **Backward Compatibility**: Ensuring the changes do not unintentionally break existing public APIs or configurations.
+- **Completeness**: Checking if the new feature is properly accompanied by updated API comments or user documentation.
 
-### 人工审查
+## Getting Help
 
-- **代码质量**：风格一致、逻辑清晰
-- **功能正确性**：是否实现了预期功能
-- **向后兼容性**：是否破坏现有 API
-- **文档完整性**：是否更新了相关文档
+- **Technical & Architectural Questions**: Please start a conversation in our [Discussions](https://github.com) forum.
+- **Contribution Queries**: Contact the maintainers directly or open an issue with the `question` label.
+- **Security Vulnerabilities**: If you discover a critical security vulnerability, do NOT open a public issue. Please follow the disclosure workflow outlined in [SECURITY.md](./SECURITY.md).
 
-## 获取帮助
+## Licensing
 
-- **技术问题**：在 [Discussions](https://github.com/junchenghe01/JCOSEK/discussions) 中提问
-- **贡献问题**：联系维护者或创建 Issue
-- **安全问题**：请参见 [SECURITY.md](./SECURITY.md)
+By contributing to JCOSEK, you agree that your contributions will be licensed under the project's **[MPL-2.0 License](../LICENSE)**. Any modifications made to existing MPL-protected files must remain strictly under the MPL-2.0 terms.
 
-## 许可证
-
-通过提交代码，你同意你的贡献将根据项目的 [MPL-2.0 许可证](../LICENSE) 进行许可。
-
-感谢你的贡献！🎉
+Thank you for your valuable contributions to making JCOSEK a better open-source project! 🎉

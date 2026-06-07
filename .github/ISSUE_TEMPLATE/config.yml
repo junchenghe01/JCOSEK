@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Technical Discussions
+    url: https://github.com/junchenghe01/JCOSEK/discussions
+    about: For questions regarding usage, architecture, and design, please use our discussion forum instead of opening an issue.
+  - name: Security Vulnerabilities
+    url: https://github.com/junchenghe01/JCOSEK/security/advisories
+    about: Found a security flaw? Please submit a private report via our Security Advisories channel instead of a public issue.
