@@ -1,0 +1,30 @@
+# ==============================================================================
+# JCOSEK CODEOWNERS File
+# ==============================================================================
+# This file defines the default reviewers for specific parts of the codebase.
+# Order matters: the last matching pattern takes precedence.
+
+# 1. Global Default Owner
+# By default, any changes to any file will automatically assign you as a reviewer.
+*                                               @junchenghe01
+
+# 2. Core Architecture & Kernel
+# Highly sensitive code that requires the core maintainer's review.
+/src/kernel/                                    @junchenghe01
+/include/kernel/                                @junchenghe01
+
+# 3. Hardware Drivers & Platforms
+# In the future, you can assign these to maintainers who specialize in specific hardware targets.
+# Examples:
+# /src/drivers/stm32/                           @junchenghe01 @stm32_expert
+# /src/drivers/riscv/                           @riscv_guru
+
+# 4. Build System & CI/CD Configuration
+/Makefile                                       @junchenghe01
+/CMakeLists.txt                                 @junchenghe01
+/.github/workflows/                             @junchenghe01
+
+# 5. Documentation & Community Management
+# Documentation changes carry lower risk; can be assigned to a docs maintainer later.
+/*.md                                           @junchenghe01
+/.github/ISSUE_TEMPLATE/                        @junchenghe01

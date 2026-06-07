@@ -2,36 +2,84 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master, develop]
+    tags: ["v*"]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master, develop]
 
 jobs:
+  # ── 构建 & 测试 (矩阵：3 个平台) ──────────────────────────────────
   build-and-test:
+    name: "Build & Test · ${{ matrix.platform }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - vexpress_a9_qemu
+          - stm32f103
+          - s32k144
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up toolchain (example)
+      - name: Install ARM GCC toolchain
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake gcc-arm-none-eabi
 
-      - name: Configure & Build
+      - name: Configure & Build (${{ matrix.platform }})
         run: |
           mkdir -p build
           cd build
-          cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchain.cmake
+          cmake .. -DTARGET_PLATFORM=${{ matrix.platform }}
           make -j$(nproc)
 
-      - name: Run tests
+      # 系统测试只在可运行 QEMU 的平台上执行
+      - name: Run system tests (vexpress_a9_qemu only)
+        if: matrix.platform == 'vexpress_a9_qemu'
         run: |
-          cd build
-          ctest --output-on-failure || true
+          for test in test_01_scheduling test_02_resource test_03_event test_04_alarm test_05_ISR; do
+            echo "::group::Testing ${test}"
+            mkdir -p build_${test}
+            cd build_${test}
+            cmake .. -DTARGET_PLATFORM=vexpress_a9_qemu -DSYS_TEST=${test}
+            make -j$(nproc)
+            ctest --output-on-failure
+            cd ..
+            echo "::endgroup::"
+          done
 
-      - name: Upload CI logs on failure
-        if: failure()
+      # 上传构建产物 (ELF / BIN / LIST / MAP)
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ci-logs
-          path: build/*.log
+          name: JCOSEK-${{ matrix.platform }}
+          path: |
+            build/*.elf
+            build/*.bin
+            build/*.list
+            build/*.map
+
+  # ── 发布 (仅标签触发) ─────────────────────────────────────────────
+  release:
+    name: "Create GitHub Release"
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display artifact tree
+        run: find artifacts -type f | sort
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: artifacts/**/*
