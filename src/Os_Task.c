@@ -113,17 +113,17 @@ StatusType GetTaskState (TaskType TaskID, TaskStateRefType State)
  * @note   Complexity: O(n), where n is the number of tasks.
  *         Recommended to be used during initialization or non-critical paths.
  */
-StatusType Os_Internal_GetTaskControlBlockByTaskID (TaskType TaskID, TaskControlBlock* pTcb)
+StatusType Os_Internal_GetTaskControlBlockByTaskID (TaskType TaskID, TaskControlBlock** ppTcb)
 {
     StatusType status = E_OS_ID; /* Default to error state */
-    pTcb              = NULL;    /* Initialize output pointer to NULL */
+    *ppTcb            = NULL;    /* Initialize output pointer to NULL */
     /* Iterate through the tasks array to find the matching ID */
     for (uint64 i = 0; i < ocb.TasksSize; i++)
     {
         /* Compare the dereferenced TaskID pointer with the target TaskID */
         if (*(ocb.Tasks[i].TaskID) == TaskID)
         {
-            pTcb   = &ocb.Tasks[i];
+            *ppTcb = &ocb.Tasks[i];
             status = E_OK;
             /* Found the TCB, exit loop early for better performance */
             break;

@@ -56,7 +56,7 @@ CounterControlBlock* Os_Internal_GetCounterIdByAlarmID (AlarmType AlarmID);
 
 void       Os_Internal_TriggerAlarmAction (AlarmControlBlock* pAlarm);
 uint16     Os_Internal_GetHighestPriorityIndex (void);
-StatusType Os_Internal_GetTaskControlBlockByTaskID (TaskType TaskID, TaskControlBlock* pTcb);
+StatusType Os_Internal_GetTaskControlBlockByTaskID (TaskType TaskID, TaskControlBlock** ppTcb);
 void       Os_Internal_EnqueueReadyTask (TaskControlBlock* pTcb, PriorityType currentPriority, uint8 flag);
 void       Os_Internal_Task_RemoveFromReady (TaskControlBlock* pTcb);
 void       Os_Internal_Task_Yield (void);
@@ -82,12 +82,11 @@ void       Os_Internal_EnterIdleMode (void);
 static inline void Os_Arch_EnableInterrupts (void)
 {
     /**
-     * "cpsie i" is specifically used to enable standard IRQ interrupts.
-     * The "memory" clobber acts as a compiler barrier, preventing the compiler
-     * from reordering memory access instructions across this boundary to ensure
-     * that logic intended to be protected remains within the critical section.
+     * Delegates to the portable layer so every CPU port (ARM cpsie/cpsid,
+     * x86_64 virtual no-op, ...) supplies its own implementation.
+     * The previous hardcoded "cpsie i" inline assembly only compiled on ARM.
      */
-    __asm__ volatile ("cpsie i" : : : "memory");
+    portENABLE_ALL_INTERRUPTS ();
 }
 
 /**
@@ -103,13 +102,11 @@ static inline void Os_Arch_EnableInterrupts (void)
 static inline void Os_Arch_DisableInterrupts (void)
 {
     /**
-     * "cpsid i" provides an atomic way to disable IRQs.
-     * The "memory" clobber serves as a compiler memory barrier, ensuring that
-     * all memory operations planned by the compiler are completed before
-     * the interrupts are disabled, and no subsequent operations are hoisted
-     * above this instruction.
+     * Delegates to the portable layer so every CPU port (ARM cpsie/cpsid,
+     * x86_64 virtual no-op, ...) supplies its own implementation.
+     * The previous hardcoded "cpsid i" inline assembly only compiled on ARM.
      */
-    __asm__ volatile ("cpsid i" : : : "memory");
+    portDISABLE_ALL_INTERRUPTS ();
 }
 
 /**
