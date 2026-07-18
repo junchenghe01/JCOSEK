@@ -311,23 +311,15 @@ StatusType Os_Internal_Schedule (OsControlBlock* pOcb)
     uint16 highest_prio = Os_Internal_GetHighestPriorityIndex ();
 
     /**
-     * If no tasks are ready (even the Idle task is missing), this indicates a
-     * severe kernel panic. Entering a debug-friendly hang state.
+     * If no tasks are ready, the system has nothing to run: enter idle mode.
+     * (The previous debug hang loop dereferenced the ARM GIC IAR register at
+     * a fixed address, which is architecture-specific and crashes on any
+     * non-ARM target such as the hosted x86_64 port.)
      */
     if (highest_prio == 0xFFFF)
     {
-        while (1)
-        {
-            /**
-             * [DEBUG] Check GIC Interrupt Acknowledge Register (IAR).
-             * If IAR != 1023, an interrupt is pending but failed to trigger the vector.
-             */
-            uint32 iar = *(volatile uint32*)(0x1e00010c);
-            if (iar != 1023)
-            {
-                /* Hardware has pending IRQ; check VBAR or Global Interrupt Enable */
-            }
-        }
+        Os_Internal_EnterIdleMode ();
+        return E_NOT_OK; /* Unreachable on ports where idle never returns */
     }
 
     /**
@@ -340,9 +332,11 @@ StatusType Os_Internal_Schedule (OsControlBlock* pOcb)
      * 3. Determine if a context switch is required.
      * Switch if:
      *   - The next task is different from the current task, AND
-     *   - The current task is no longer in RUNNING state (e.g., Suspended/Waiting).
+     *   - There is no current task (idle / first activation of a tick), OR
+     *     the current task is no longer in RUNNING state (e.g., Suspended/Waiting).
      */
-    if (pNextTask != ocb.pCurrentTask && ocb.pCurrentTask->TaskState != TASK_STATE_RUNNING)
+    if (pNextTask != ocb.pCurrentTask
+        && (ocb.pCurrentTask == NULL || ocb.pCurrentTask->TaskState != TASK_STATE_RUNNING))
     {
         /* [TODO (HE Juncheng/2026-03-15)] Handle the self-switch scenario to prevent system hang */
         TaskControlBlock* pOldTask = ocb.pCurrentTask;
@@ -352,7 +346,7 @@ StatusType Os_Internal_Schedule (OsControlBlock* pOcb)
 
         /**
          * 4. Perform Architecture-specific Context Switch (Assembly).
-         * [UNIMPLEMENTED] Handling Os_FirstStart if pOldTask is NULL.
+         * pOldTask may be NULL on the first dispatch of a tick (idle ¡ú task).
          */
         Os_ContextSwitch (pOldTask, pNextTask);
         status = E_OK;
@@ -363,7 +357,7 @@ StatusType Os_Internal_Schedule (OsControlBlock* pOcb)
          * Fallback: If the highest priority task is the current one, but it is
          * not in RUNNING state, the system must enter Idle mode.
          */
-        if (ocb.pCurrentTask->TaskState != TASK_STATE_RUNNING)
+        if (ocb.pCurrentTask != NULL && ocb.pCurrentTask->TaskState != TASK_STATE_RUNNING)
         {
             Os_Internal_EnterIdleMode ();
         }
